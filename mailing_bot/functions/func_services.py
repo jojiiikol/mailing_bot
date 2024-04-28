@@ -1,7 +1,6 @@
 import __main__
-from aiogram import Router, F, types
-from aiogram.filters import Command, ChatMemberUpdatedFilter, KICKED, MEMBER
-from keyboards.user_kb import get_check_subscription_kb
+from aiogram import Router, types
+from aiogram.filters import ChatMemberUpdatedFilter, KICKED, MEMBER
 
 services_router = Router()
 
