@@ -9,22 +9,27 @@ import __main__
 load_dotenv()
 admin_router = Router()
 
+
 # TODO: Просмотреть все трай эксепты, добавить новые.
-# TODO: Добавить изменение рассылки
 class CheckAdmin(StatesGroup):
     get_password = State()
+
 
 class CreateMailing(StatesGroup):
     set_text = State()
     set_photo = State()
+    edit_text = State()
+    edit_photo = State()
     confirm_1 = State()
     confirm_2 = State()
     confirm_3 = State()
+
 
 @admin_router.message(F.text == "Открыть админ-панель")
 async def get_admin(message: types.Message, state: FSMContext):
     await message.answer(text="Введите пароль")
     await state.set_state(CheckAdmin.get_password)
+
 
 @admin_router.message(CheckAdmin.get_password)
 async def get_password(message: types.Message, state: FSMContext):
@@ -36,9 +41,11 @@ async def get_password(message: types.Message, state: FSMContext):
         await message.answer(text="Неверный пароль")
         await state.clear()
 
+
 @admin_router.message(F.text == "Архив рассылок")
 async def mailing_archive(message: types.Message):
     pass
+
 
 @admin_router.message(F.text == "Создать рассылку")
 async def create_mailing(message: types.Message, state: FSMContext):
@@ -57,13 +64,15 @@ async def create_mailing(message: types.Message, state: FSMContext):
         await message.answer(text="Отправьте текст будущей рассылки")
         await state.set_state(CreateMailing.set_text)
 
+
 @admin_router.message(CreateMailing.set_text)
 async def set_text(message: types.Message, state: FSMContext):
     text = message.html_text
     text = text.replace("'", '"')
     await message.answer(text="Необходимо ли фото к данной рассылке?", reply_markup=admin_kb.get_confirm_keyboard())
-    await state.update_data(message_text = text)
+    await state.update_data(message_text=text)
     await state.set_state(CreateMailing.confirm_1)
+
 
 @admin_router.callback_query(CreateMailing.confirm_1, F.data.contains("set_"))
 async def confirm_photo(callback: types.CallbackQuery, state: FSMContext):
@@ -76,8 +85,10 @@ async def confirm_photo(callback: types.CallbackQuery, state: FSMContext):
     if callback_data == "cancel":
         await state.update_data(photo=None)
         data = await state.get_data()
-        await callback.message.answer(text=f"Пример рассылки: \n{data["message_text"]}", reply_markup=admin_kb.get_confirm_keyboard())
+        await callback.message.answer(text=f"Пример рассылки: \n{data["message_text"]}",
+                                      reply_markup=admin_kb.get_edit_keyboard())
         await state.set_state(CreateMailing.confirm_2)
+
 
 @admin_router.message(CreateMailing.set_photo, F.content_type == "photo")
 async def set_photo(message: types.Message, state: FSMContext):
@@ -88,12 +99,59 @@ async def set_photo(message: types.Message, state: FSMContext):
         data = await state.get_data()
         message_text = data["message_text"]
         message_text += "\n\nПример рассылки"
-        await message.answer_photo(photo=photo, caption=message_text, reply_markup=admin_kb.get_confirm_keyboard())
+        await message.answer_photo(photo=photo, caption=message_text, reply_markup=admin_kb.get_edit_keyboard())
     except Exception as e:
         print(f"При подрузке фото произошла ошибка {str(e)}")
         await state.update_data(photo=None)
         await message.answer(text="Произошла ошибка при подгрузке фото")
+        data = await state.get_data()
+        message_text = data["message_text"]
+        await message.answer(text=message_text, reply_markup=admin_kb.get_edit_keyboard())
     await state.set_state(CreateMailing.confirm_2)
+
+
+@admin_router.callback_query(CreateMailing.confirm_2, F.data.contains("edit_"))
+async def edit_data(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    callback_data = callback.data.split("_")[1]
+    if callback_data == "text":
+        await callback.message.answer(text="Введите новый текст")
+        await state.set_state(CreateMailing.edit_text)
+    if callback_data == "photo":
+        await callback.message.answer(text="Отправьте новое фото")
+        await state.set_state(CreateMailing.edit_photo)
+
+@admin_router.message(CreateMailing.edit_text)
+async def edit_text(message: types.Message, state: FSMContext):
+    text = message.html_text
+    text = text.replace("'", '"')
+    await state.update_data(message_text=text)
+    data = await state.get_data()
+    if data["photo"] == None:
+        await message.answer(text=f"Пример рассылки:\n{data['message_text']}", reply_markup=admin_kb.get_edit_keyboard())
+    else:
+        await message.answer_photo(photo=data["photo"], caption=f"{data["message_text"]}\n\nПример рассылки" ,reply_markup=admin_kb.get_edit_keyboard())
+    await state.set_state(CreateMailing.confirm_2)
+
+@admin_router.message(CreateMailing.edit_photo)
+async def edit_photo(message: types.Message, state: FSMContext):
+    try:
+        photo = message.photo[0].file_id
+        await state.update_data(photo=photo)
+        await message.answer(text="Фотография принята")
+        data = await state.get_data()
+        message_text = data["message_text"]
+        message_text += "\n\nПример рассылки"
+        await message.answer_photo(photo=photo, caption=message_text, reply_markup=admin_kb.get_edit_keyboard())
+    except Exception as e:
+        print(f"При подрузке фото произошла ошибка {str(e)}")
+        await state.update_data(photo=None)
+        await message.answer(text="Произошла ошибка при подгрузке фото")
+        data = await state.get_data()
+        message_text = data["message_text"]
+        await message.answer(text=message_text, reply_markup=admin_kb.get_edit_keyboard())
+    await state.set_state(CreateMailing.confirm_2)
+
 
 @admin_router.callback_query(CreateMailing.confirm_2, F.data.contains("set_"))
 async def confirm(callback: types.CallbackQuery, state: FSMContext):

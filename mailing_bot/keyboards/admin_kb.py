@@ -11,6 +11,16 @@ def get_confirm_keyboard():
     kb.button(text="Подтвердить", callback_data="set_confirm")
     kb.button(text="Отменить", callback_data="set_cancel")
     return kb.as_markup()
+
+def get_edit_keyboard():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="Изменить текст", callback_data="edit_text")
+    kb.button(text="Изменить фото", callback_data="edit_photo")
+    kb.button(text="Подтвердить", callback_data="set_confirm")
+    kb.button(text="Отменить", callback_data="set_cancel")
+    kb.adjust(2, 2)
+    return kb.as_markup()
+
 def get_mailing_keyboard():
     kb = InlineKeyboardBuilder()
     kb.button(text="Отправить сообщение", callback_data="send")
