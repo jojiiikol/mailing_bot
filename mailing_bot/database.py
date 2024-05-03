@@ -58,7 +58,6 @@ class Database():
         except Exception as e:
             print(f"get_id_from_tg_id: При возращении админа произошла ошибка: {str(e)}")
 
-
     async def update_subscription_status_user(self, tg_id):
         try:
             date_now = date.today()
@@ -95,3 +94,14 @@ class Database():
             return result
         except Exception as e:
             print(f"get_all_user_for_mailing: Ошибка в выборке всех пользователей для рассылки: {str(e)}")
+
+    async def insert_mailing_in_archive(self, tg_id, text, photo):
+        try:
+            id_pk = await self.get_id_from_tg_id(tg_id)
+            date_now = date.today()
+            photo_dist = f"photos/{photo}.jpg"
+            query = f"INSERT INTO mailing_archive (user_id, mailing_text, mailing_photo, mailing_date) VALUES ('{id_pk[0]}', '{text}', '{photo_dist}', '{date_now}')"
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(f"insert_mailing_in_archive: Ошибка при занесении в архив: {str(e)}")

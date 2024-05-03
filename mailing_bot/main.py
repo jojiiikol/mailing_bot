@@ -17,13 +17,10 @@ bot = Bot(token=token,
 print('Bot started')
 async def main():
 
-
     dp = Dispatcher()
     dp.include_router(func_users.user_router)
     dp.include_router(func_services.services_router)
     dp.include_router(func_admin.admin_router)
-
-
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

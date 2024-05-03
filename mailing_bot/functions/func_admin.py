@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -94,7 +96,9 @@ async def confirm_photo(callback: types.CallbackQuery, state: FSMContext):
 async def set_photo(message: types.Message, state: FSMContext):
     try:
         photo = message.photo[0].file_id
+        print(message.photo)
         await state.update_data(photo=photo)
+        await state.update_data(photo_info=message.photo[-1])
         await message.answer(text="Фотография принята")
         data = await state.get_data()
         message_text = data["message_text"]
@@ -103,6 +107,7 @@ async def set_photo(message: types.Message, state: FSMContext):
     except Exception as e:
         print(f"При подрузке фото произошла ошибка {str(e)}")
         await state.update_data(photo=None)
+        await state.update_data(photo_info=None)
         await message.answer(text="Произошла ошибка при подгрузке фото")
         data = await state.get_data()
         message_text = data["message_text"]
@@ -138,6 +143,7 @@ async def edit_photo(message: types.Message, state: FSMContext):
     try:
         photo = message.photo[0].file_id
         await state.update_data(photo=photo)
+        await state.update_data(photo_info=message.photo[-1])
         await message.answer(text="Фотография принята")
         data = await state.get_data()
         message_text = data["message_text"]
@@ -146,6 +152,7 @@ async def edit_photo(message: types.Message, state: FSMContext):
     except Exception as e:
         print(f"При подрузке фото произошла ошибка {str(e)}")
         await state.update_data(photo=None)
+        await state.update_data(photo_info=None)
         await message.answer(text="Произошла ошибка при подгрузке фото")
         data = await state.get_data()
         message_text = data["message_text"]
@@ -159,9 +166,13 @@ async def confirm(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     message_text = data["message_text"]
     photo = data["photo"]
+    photo_info = data["photo_info"]
     callback_data = callback.data.split("_")[1]
     if callback_data == "confirm":
+        await download_photo(photo_info)
         users_for_mailing = await __main__.db.get_all_user_for_mailing()
+        time_for_mailing = len(users_for_mailing) * 1.5
+        await callback.message.answer(text=f"Примерное время рассылки каждому участнику: {time_for_mailing} ~ секунд")
         for user in users_for_mailing:
             try:
                 if photo != None:
@@ -170,8 +181,18 @@ async def confirm(callback: types.CallbackQuery, state: FSMContext):
                     await __main__.bot.send_message(chat_id=user[0], text=message_text)
             except Exception as e:
                 print(f"Ошибка во время отправки: {str(e)}")
+            await asyncio.sleep(1.5)
         await callback.message.answer(text="Рассылка была проведена")
+        await __main__.db.insert_mailing_in_archive(callback.from_user.id, text=message_text, photo=photo)
         await state.clear()
     if callback_data == "cancel":
         await callback.message.answer(text="Рассылка была отменена")
         await state.clear()
+
+async def download_photo(photo):
+    try:
+        file = await __main__.bot.get_file(photo.file_id)
+        file_path = file.file_path
+        await __main__.bot.download_file(file_path=file_path, destination=f"{photo.file_unique_id}.jpg")
+    except Exception as e:
+        print(f"Произошла ошибка при скачивании фото на сервер: {str(e)}")
