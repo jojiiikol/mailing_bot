@@ -99,7 +99,7 @@ class Database():
         try:
             id_pk = await self.get_id_from_tg_id(tg_id)
             date_now = date.today()
-            photo_dist = f"photos/{photo}.jpg"
+            photo_dist = f"{photo}.jpg"
             query = f"INSERT INTO mailing_archive (user_id, mailing_text, mailing_photo, mailing_date) VALUES ('{id_pk[0]}', '{text}', '{photo_dist}', '{date_now}')"
             self.cursor.execute(query)
             self.connection.commit()
