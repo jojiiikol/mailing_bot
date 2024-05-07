@@ -46,7 +46,26 @@ async def get_password(message: types.Message, state: FSMContext):
 
 @admin_router.message(F.text == "Архив рассылок")
 async def mailing_archive(message: types.Message):
-    pass
+    await message.answer(text="Выберите рассылку для просмотра", reply_markup=admin_kb.get_archive_mailing_buttons())
+
+@admin_router.callback_query(F.data.contains("archive_"))
+async def get_archive(callback: types.CallbackQuery):
+    await callback.answer()
+    archive_message = callback.data.split("_")
+    message = await __main__.db.get_archive_mailing_message(archive_message[1])
+    photo = message[2]
+    text = (f"Отправитель: {message[4]}\n"
+            f"Дата отправления: {str(message[3])}\n"
+            f"\nТекст: {message[1]}")
+    await callback.message.answer(text=text)
+
+    try:
+        if photo is None:
+            pass
+        else:
+            await callback.message.answer_photo(photo=types.FSInputFile(path=photo))
+    except Exception as e:
+        print(f"Ошибка при отправке фото с сервера: {str(e)}")
 
 
 @admin_router.message(F.text == "Создать рассылку")
@@ -60,9 +79,8 @@ async def create_mailing(message: types.Message, state: FSMContext):
                                   "2) Бот запросит вас необходимость прикрепления фото - подтверждаете/отменяете\n"
                                   "3) После создания бот отправит пример рассылки\n"
                                   "4) Подтверждаете/отменяете\n"
-                                  "5) Если все устраивает, нажимаете на кнопку 'Отправить сообщение'\n"
-                                  "6) Снова подтверждаете/отменяете\n"
-                                  "7) После подтверждения сообщение будет разослано пользователям")
+                                  "5) Если все устраивает, нажимаете на кнопку 'Подтвердить'\n"
+                                  "6) После подтверждения сообщение будет разослано пользователям")
         await message.answer(text="Отправьте текст будущей рассылки")
         await state.set_state(CreateMailing.set_text)
 
@@ -138,13 +156,11 @@ async def edit_data(callback: types.CallbackQuery, state: FSMContext):
 
 @admin_router.message(CreateMailing.edit_text)
 async def edit_text(message: types.Message, state: FSMContext):
-    photo_id = get_photo_id_from_message(message)
-    photo_info = get_photo_info_from_message(message)
-
     text = replace_quotes(message.html_text)
     await state.update_data(message_text=text)
     data = await state.get_data()
-    if photo_id == None:
+    photo_id = data["photo"]
+    if photo_id is None:
         await message.answer(text=f"Пример рассылки:\n{data['message_text']}",
                              reply_markup=admin_kb.get_edit_keyboard())
     else:
@@ -181,17 +197,18 @@ async def confirm(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     message_text = data["message_text"]
     photo = data["photo"]
-    print(photo)
     photo_info = data["photo_info"]
     callback_data = callback.data.split("_")[1]
     if callback_data == "confirm":
-        await download_photo_to_server(photo_info)
         users_for_mailing = await __main__.db.get_all_user_for_mailing()
         time_for_mailing = len(users_for_mailing) * 1.5
         await callback.message.answer(text=f"Примерное время рассылки каждому участнику: {time_for_mailing} ~ секунд")
         await mailing(users_for_mailing, photo, message_text)
         await callback.message.answer(text="Рассылка была проведена")
+
+        await download_photo_to_server(photo_info)
         await insert_mailing_in_archive(callback.from_user.id, data)
+
         await state.clear()
     if callback_data == "cancel":
         await callback.message.answer(text="Рассылка была отменена")
@@ -218,7 +235,7 @@ async def mailing(users, photo, message_text):
 async def insert_mailing_in_archive(tg_id, data):
     try:
         photo = data["photo_info"]
-        if photo != None:
+        if photo is not None:
             photo_name = get_photo_id(photo)
         else:
             photo_name = None
@@ -229,14 +246,14 @@ async def insert_mailing_in_archive(tg_id, data):
 
 
 async def download_photo_to_server(photo):
-    if photo == None:
+    if photo is None:
         pass
     else:
         try:
             file = await __main__.bot.get_file(photo.file_id)
             file_path = file.file_path
             new_photo = await __main__.bot.download_file(file_path=file_path,
-                                                         destination=f"{get_photo_name_from_photo_id(photo)}")
+                                                         destination=f"photo/{get_photo_name_from_photo_id(photo)}")
         except Exception as e:
             print(f"Произошла ошибка при скачивании фото на сервер: {str(e)}")
 
@@ -256,6 +273,7 @@ def get_photo_id_from_message(message: types):
 
 def get_photo_info_from_message(message: types.Message):
     return message.photo[-1]
+
 
 def replace_quotes(text):
     return text.replace("'", '"')

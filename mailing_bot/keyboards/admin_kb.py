@@ -1,4 +1,5 @@
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, KeyboardButton, InlineKeyboardBuilder, InlineKeyboardButton
+import __main__
 
 def get_admin_keyboard():
     kb = ReplyKeyboardBuilder()
@@ -21,7 +22,10 @@ def get_edit_keyboard():
     kb.adjust(2, 2)
     return kb.as_markup()
 
-def get_mailing_keyboard():
+def get_archive_mailing_buttons():
     kb = InlineKeyboardBuilder()
-    kb.button(text="Отправить сообщение", callback_data="send")
+    mailing_messages = __main__.db.get_archive_mailing_kb()
+    for message in mailing_messages:
+        kb.button(text=f"{message[0]}: {message[1][:10]}...", callback_data=f"archive_{message[2]}")
+    kb.adjust(1, 1)
     return kb.as_markup()
