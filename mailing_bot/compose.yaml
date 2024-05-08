@@ -1,0 +1,23 @@
+services:
+  db:
+    hostname: db
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=205896
+      - POSTGRES_DB=mailing_bot_db
+    restart: on-failure
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+  bot:
+    build:
+      .
+    working_dir:
+      /app
+    command: python main.py
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - db

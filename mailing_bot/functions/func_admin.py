@@ -46,7 +46,11 @@ async def get_password(message: types.Message, state: FSMContext):
 
 @admin_router.message(F.text == "Архив рассылок")
 async def mailing_archive(message: types.Message):
-    await message.answer(text="Выберите рассылку для просмотра", reply_markup=admin_kb.get_archive_mailing_buttons())
+    check_admin = await __main__.db.get_admin_id_from_tg_id(message.from_user.id)
+    if check_admin == None:
+        pass
+    else:
+        await message.answer(text="Выберите рассылку для просмотра", reply_markup=admin_kb.get_archive_mailing_buttons())
 
 @admin_router.callback_query(F.data.contains("archive_"))
 async def get_archive(callback: types.CallbackQuery):
