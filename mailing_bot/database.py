@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class Database():
+class Database:
     def __init__(self):
         self.connection = connect(
             user=os.getenv("DB_USER"),
@@ -95,20 +95,23 @@ class Database():
         except Exception as e:
             print(f"get_all_user_for_mailing: Ошибка в выборке всех пользователей для рассылки: {str(e)}")
 
-    async def insert_mailing_in_archive(self, tg_id, text, photo):
+    async def insert_mailing_in_db(self,
+                                   tg_id=0,
+                                   text=None,
+                                   photo=None,
+                                   date=None,
+                                   time=None,
+                                   status=True):
         try:
             id_pk = await self.get_id_from_tg_id(tg_id)
-            date_now = date.today()
 
-            if photo is not None:
-                photo_dist = f"photo/{photo}.jpg"
-            else:
-                photo_dist = None
+            if len(text) > 1024:
+                text = text[:1023]
 
-            if len(text) > 2048:
-                text = text[:2047]
-
-            query = f"INSERT INTO mailing_archive (user_id, mailing_text, mailing_photo, mailing_date) VALUES ('{id_pk[0]}', '{text}', '{photo_dist}', '{date_now}')"
+            query = f"""INSERT INTO mailing 
+                        (admin_id, text, photo, time, date, status) 
+                    VALUES 
+                        ('{id_pk[0]}', '{text}', '{photo}', '{time}', '{date}', '{status}')"""
             self.cursor.execute(query)
             self.connection.commit()
         except Exception as e:
@@ -116,7 +119,7 @@ class Database():
 
     def get_archive_mailing_kb(self):
         try:
-            query = f"SELECT mailing_date, mailing_text, id FROM mailing_archive ORDER BY mailing_date DESC"
+            query = f"SELECT date, text, id FROM mailing ORDER BY date DESC"
             self.cursor.execute(query)
             return self.cursor.fetchall()
         except Exception as e:
@@ -125,16 +128,28 @@ class Database():
     async def get_archive_mailing_message(self, id):
         try:
             query = f"""SELECT
-                        ma.user_id,
-                        ma.mailing_text,
-                        ma.mailing_photo,
-                        ma.mailing_date,
+                        ma.admin_id,
+                        ma.text,
+                        ma.photo,
+                        ma.date,
+                        ma.time,
+                        ma.status,
                         u.nickname
                     FROM
-                        mailing_archive ma
-                        INNER JOIN users u ON ma.user_id = u.id
+                        mailing ma
+                        INNER JOIN users u ON ma.admin_id = u.id
                     WHERE ma.id = {id}"""
             self.cursor.execute(query)
             return self.cursor.fetchone()
         except Exception as e:
             print(f"get_archive_mailing: Произошла ошибка при выводе архивного сообщения: {str(e)}")
+
+    async def change_status_mailing(self, message_text):
+        try:
+            query = f"""
+                    UPDATE mailing SET status=false WHERE text='{message_text}'"""
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(f"change_status_mailing: Произошла ошибка при смене статуса рассылки: {str(e)}")
+

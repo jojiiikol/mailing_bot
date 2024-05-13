@@ -1,5 +1,5 @@
 import asyncio
-
+import datetime
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -22,6 +22,8 @@ class CreateMailing(StatesGroup):
     set_photo = State()
     edit_text = State()
     edit_photo = State()
+    set_datetime = State()
+    edit_datetime = State()
     confirm_1 = State()
     confirm_2 = State()
     confirm_3 = State()
@@ -47,10 +49,12 @@ async def get_password(message: types.Message, state: FSMContext):
 @admin_router.message(F.text == "Архив рассылок")
 async def mailing_archive(message: types.Message):
     check_admin = await __main__.db.get_admin_id_from_tg_id(message.from_user.id)
-    if check_admin == None:
+    if check_admin is None:
         pass
     else:
-        await message.answer(text="Выберите рассылку для просмотра", reply_markup=admin_kb.get_archive_mailing_buttons())
+        await message.answer(text="Выберите рассылку для просмотра",
+                             reply_markup=admin_kb.get_archive_mailing_buttons())
+
 
 @admin_router.callback_query(F.data.contains("archive_"))
 async def get_archive(callback: types.CallbackQuery):
@@ -58,13 +62,15 @@ async def get_archive(callback: types.CallbackQuery):
     archive_message = callback.data.split("_")
     message = await __main__.db.get_archive_mailing_message(archive_message[1])
     photo = message[2]
-    text = (f"Отправитель: {message[4]}\n"
+    text = (f"Отправитель: {message[6]}\n"
             f"Дата отправления: {str(message[3])}\n"
+            f"Время отправления: {str(message[4])}\n"
+            f"Рассылка: {'Проведена' if message[5] == False else "Не проведена"}"
             f"\nТекст: {message[1]}")
     await callback.message.answer(text=text)
 
     try:
-        if photo is None:
+        if photo == 'None':
             pass
         else:
             await callback.message.answer_photo(photo=types.FSInputFile(path=photo))
@@ -75,16 +81,17 @@ async def get_archive(callback: types.CallbackQuery):
 @admin_router.message(F.text == "Создать рассылку")
 async def create_mailing(message: types.Message, state: FSMContext):
     check_admin = await __main__.db.get_admin_id_from_tg_id(message.from_user.id)
-    if check_admin == None:
+    if check_admin is None:
         pass
     else:
         await message.answer(text="Создание рассылки идет в несколько этапов:\n"
                                   "1) Отправьте текст боту\n"
                                   "2) Бот запросит вас необходимость прикрепления фото - подтверждаете/отменяете\n"
-                                  "3) После создания бот отправит пример рассылки\n"
-                                  "4) Подтверждаете/отменяете\n"
-                                  "5) Если все устраивает, нажимаете на кнопку 'Подтвердить'\n"
-                                  "6) После подтверждения сообщение будет разослано пользователям")
+                                  "3) Далее необходимо указать дату и время когда необходимо отправить сообщения \n"
+                                  "4) После создания бот отправит пример рассылки\n"
+                                  "5) Подтверждаете/отменяете\n"
+                                  "6) Если все устраивает, нажимаете на кнопку 'Подтвердить'\n"
+                                  "7) После подтверждения сообщение будет разослано пользователям")
         await message.answer(text="Отправьте текст будущей рассылки")
         await state.set_state(CreateMailing.set_text)
 
@@ -92,13 +99,18 @@ async def create_mailing(message: types.Message, state: FSMContext):
 @admin_router.message(CreateMailing.set_text)
 async def set_text(message: types.Message, state: FSMContext):
     text = replace_quotes(message.html_text)
-    await message.answer(text="Необходимо ли фото к данной рассылке?", reply_markup=admin_kb.get_confirm_keyboard())
-    await state.update_data(message_text=text)
-    await state.set_state(CreateMailing.confirm_1)
+    if len(text) > 1024:
+        await message.answer(
+            text="Ограничения telegram не позволяют отправить сообщение более 1024 символов\nОтправьте новый текст")
+        await state.set_state(CreateMailing.set_text)
+    else:
+        await message.answer(text="Необходимо ли фото к данной рассылке?", reply_markup=admin_kb.get_confirm_keyboard())
+        await state.update_data(message_text=text)
+        await state.set_state(CreateMailing.confirm_1)
 
 
 @admin_router.callback_query(CreateMailing.confirm_1, F.data.contains("set_"))
-async def confirm_photo(callback: types.CallbackQuery, state: FSMContext):
+async def confirm_photo_need(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
 
@@ -111,10 +123,8 @@ async def confirm_photo(callback: types.CallbackQuery, state: FSMContext):
     if callback_data == "cancel":
         await state.update_data(photo=None)
         await state.update_data(photo_info=None)
-        data = await state.get_data()
-        await callback.message.answer(text=f"Пример рассылки: \n{data["message_text"]}",
-                                      reply_markup=admin_kb.get_edit_keyboard())
-        await state.set_state(CreateMailing.confirm_2)
+        await callback.message.answer(text="Введите дату и время в формате: 10.05 12:59")
+        await state.set_state(CreateMailing.set_datetime)
 
 
 @admin_router.message(CreateMailing.set_photo, F.content_type == "photo")
@@ -125,13 +135,8 @@ async def set_photo(message: types.Message, state: FSMContext):
 
         await state.update_data(photo=photo_id)
         await state.update_data(photo_info=photo_info)
-        data = await state.get_data()
 
         await message.answer(text="Фотография принята")
-
-        message_text = data["message_text"]
-        message_text += "\n\nПример рассылки"
-        await message.answer_photo(photo=photo_id, caption=message_text, reply_markup=admin_kb.get_edit_keyboard())
     except Exception as e:
         print(f"При подрузке фото произошла ошибка {str(e)}")
 
@@ -139,11 +144,37 @@ async def set_photo(message: types.Message, state: FSMContext):
         await state.update_data(photo_info=None)
         await message.answer(text="Произошла ошибка при подгрузке фото")
 
-        data = await state.get_data()
-        message_text = data["message_text"]
-        await message.answer(text=message_text, reply_markup=admin_kb.get_edit_keyboard())
+    await message.answer(text="Введите дату и время в формате: 10.05 12:59")
+    await state.set_state(CreateMailing.set_datetime)
 
-    await state.set_state(CreateMailing.confirm_2)
+
+@admin_router.message(CreateMailing.set_datetime)
+async def set_date(message: types.Message, state: FSMContext):
+    try:
+        date = message.text.split(" ")[0]
+        time = message.text.split(" ")[1]
+        datetimes = datetime.datetime(
+            year=datetime.datetime.now().year,
+            month=int(date.split(".")[1]),
+            day=int(date.split(".")[0]),
+            hour=int(time.split(":")[0]),
+            minute=int(time.split(":")[1]),
+            second=0
+        )
+        if datetime.datetime.now() > datetimes:
+            await message.answer(text="Неверно введенные дата и время (прошедшая дата)")
+            await message.answer(text="Введите дату и время в формате: 10.05 12:59")
+            await state.set_state(CreateMailing.set_datetime)
+        else:
+            await state.update_data(date=datetimes)
+            await message.answer(text="Дата и время приняты")
+            await send_example_mailing(state, message)
+            await state.set_state(CreateMailing.confirm_2)
+    except Exception as e:
+        print(f"При установке даты произошла ошибка: {str(e)}")
+        await message.answer(text="Произошла ошибка, повторите попытку")
+        await message.answer(text="Введите дату и время в формате: 10.05 12:59")
+        await state.set_state(CreateMailing.set_datetime)
 
 
 @admin_router.callback_query(CreateMailing.confirm_2, F.data.contains("edit_"))
@@ -156,21 +187,22 @@ async def edit_data(callback: types.CallbackQuery, state: FSMContext):
     if callback_data == "photo":
         await callback.message.answer(text="Отправьте новое фото")
         await state.set_state(CreateMailing.edit_photo)
+    if callback_data == "datetime":
+        await callback.message.answer(text="Отправьте новое время и дату\nФормат: 10.05 01:59")
+        await state.set_state(CreateMailing.edit_datetime)
 
 
 @admin_router.message(CreateMailing.edit_text)
 async def edit_text(message: types.Message, state: FSMContext):
     text = replace_quotes(message.html_text)
-    await state.update_data(message_text=text)
-    data = await state.get_data()
-    photo_id = data["photo"]
-    if photo_id is None:
-        await message.answer(text=f"Пример рассылки:\n{data['message_text']}",
-                             reply_markup=admin_kb.get_edit_keyboard())
+    if len(text) > 1024:
+        await message.answer(
+            text="Ограничения telegram не позволяют отправить сообщение более 1024 символов\nОтправьте новый текст")
+        await state.set_state(CreateMailing.set_text)
     else:
-        await message.answer_photo(photo=photo_id, caption=f"{data["message_text"]}\n\nПример рассылки",
-                                   reply_markup=admin_kb.get_edit_keyboard())
-    await state.set_state(CreateMailing.confirm_2)
+        await state.update_data(message_text=text)
+        await send_example_mailing(state, message)
+        await state.set_state(CreateMailing.confirm_2)
 
 
 @admin_router.message(CreateMailing.edit_photo)
@@ -180,47 +212,65 @@ async def edit_photo(message: types.Message, state: FSMContext):
         await state.update_data(photo=photo)
         await state.update_data(photo_info=message.photo[-1])
         await message.answer(text="Фотография принята")
-        data = await state.get_data()
-        message_text = data["message_text"]
-        message_text += "\n\nПример рассылки"
-        await message.answer_photo(photo=photo, caption=message_text, reply_markup=admin_kb.get_edit_keyboard())
+        await send_example_mailing(state, message)
     except Exception as e:
         print(f"При подрузке фото произошла ошибка {str(e)}")
         await state.update_data(photo=None)
         await state.update_data(photo_info=None)
         await message.answer(text="Произошла ошибка при подгрузке фото")
-        data = await state.get_data()
-        message_text = data["message_text"]
-        await message.answer(text=message_text, reply_markup=admin_kb.get_edit_keyboard())
+        await send_example_mailing(state, message)
     await state.set_state(CreateMailing.confirm_2)
 
 
+@admin_router.message(CreateMailing.edit_datetime)
+async def edit_datetime(message: types.Message, state: FSMContext):
+    try:
+        date = message.text.split(" ")[0]
+        time = message.text.split(" ")[1]
+        datetimes = datetime.datetime(
+            year=datetime.datetime.now().year,
+            month=int(date.split(".")[1]),
+            day=int(date.split(".")[0]),
+            hour=int(time.split(":")[0]),
+            minute=int(time.split(":")[1]),
+            second=0
+        )
+        if datetime.datetime.now() > datetimes:
+            await message.answer(text="Неверно введенные дата и время (прошедшая дата)")
+            await message.answer(text="Введите дату и время в формате: 10.05 12:59")
+            await state.set_state(CreateMailing.edit_datetime)
+        else:
+            await state.update_data(date=datetimes)
+            await message.answer(text="Дата и время приняты")
+            await send_example_mailing(state, message)
+            await state.set_state(CreateMailing.confirm_2)
+    except Exception as e:
+        print(f"Произошла ошибка при изменении даты и времени: {str(e)}")
+        await message.answer(text="Произошла ошибка, повторите попытку")
+        await message.answer(text="Отправьте новое время и дату\nФормат: 10.05 01:59")
+        await state.set_state(CreateMailing.edit_datetime)
+
+
 @admin_router.callback_query(CreateMailing.confirm_2, F.data.contains("set_"))
-async def confirm(callback: types.CallbackQuery, state: FSMContext):
+async def do_mailing(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
-    message_text = data["message_text"]
-    photo = data["photo"]
-    photo_info = data["photo_info"]
-    callback_data = callback.data.split("_")[1]
-    if callback_data == "confirm":
-        users_for_mailing = await __main__.db.get_all_user_for_mailing()
-        time_for_mailing = len(users_for_mailing) * 1.5
-        await callback.message.answer(text=f"Примерное время рассылки каждому участнику: {time_for_mailing} ~ секунд")
-        await mailing(users_for_mailing, photo, message_text)
-        await callback.message.answer(text="Рассылка была проведена")
-
-        await download_photo_to_server(photo_info)
-        await insert_mailing_in_archive(callback.from_user.id, data)
-
-        await state.clear()
-    if callback_data == "cancel":
-        await callback.message.answer(text="Рассылка была отменена")
-        await state.clear()
+    await download_photo_to_server(data['photo_info'])
+    await insert_mailing_in_archive(callback.from_user.id, state)
+    await make_mailing_job_for_cheduler(state)
+    await state.clear()
 
 
-async def mailing(users, photo, message_text):
-    if photo != None:
+async def make_mailing_job_for_cheduler(state: FSMContext):
+    message_text, photo, date = await get_mailing_data(state)
+    __main__.scheduler.add_job(mailing, 'date', run_date=date, args=(message_text, photo))
+    print("Добавлена задача в планировщик")
+    print(f"Всего задач: {len(__main__.scheduler.get_jobs())}\n")
+
+
+async def mailing(message_text, photo):
+    users = await __main__.db.get_all_user_for_mailing()
+    if photo is not None:
         for user in users:
             try:
                 await __main__.bot.send_photo(chat_id=user[0], caption=message_text, photo=photo)
@@ -234,17 +284,24 @@ async def mailing(users, photo, message_text):
                 await asyncio.sleep(1.5)
             except Exception as e:
                 print(f"Ошибка во время отправки: {str(e)}")
-
-
-async def insert_mailing_in_archive(tg_id, data):
     try:
+        await __main__.db.change_status_mailing(message_text)
+    except Exception as e:
+        print(f"Произошла ошибка при смене статуса рассылки: {str(e)}")
+
+
+async def insert_mailing_in_archive(tg_id, state: FSMContext):
+    try:
+        data = await state.get_data()
+        message_text, photo_id, dates = await get_mailing_data(state)
         photo = data["photo_info"]
+        time = dates.time()
+        date = dates.date()
         if photo is not None:
-            photo_name = get_photo_id(photo)
+            photo_name = f"photo/{get_photo_id(photo)}.jpg"
         else:
             photo_name = None
-        message_text = data["message_text"]
-        await __main__.db.insert_mailing_in_archive(tg_id, text=message_text, photo=photo_name)
+        await __main__.db.insert_mailing_in_db(tg_id, text=message_text, photo=photo_name, time=time, date=date)
     except Exception as e:
         print(f"Произошла ошибка при внесении данных о рассылке в БД: {str(e)}")
 
@@ -256,10 +313,28 @@ async def download_photo_to_server(photo):
         try:
             file = await __main__.bot.get_file(photo.file_id)
             file_path = file.file_path
-            new_photo = await __main__.bot.download_file(file_path=file_path,
-                                                         destination=f"photo/{get_photo_name_from_photo_id(photo)}")
+            await __main__.bot.download_file(file_path=file_path,
+                                             destination=f"photo/{get_photo_name_from_photo_id(photo)}")
         except Exception as e:
             print(f"Произошла ошибка при скачивании фото на сервер: {str(e)}")
+
+
+async def get_mailing_data(state: FSMContext):
+    data = await state.get_data()
+    message_text = data['message_text']
+    photo_id = data['photo']
+    date = data['date']
+    return message_text, photo_id, date
+
+
+async def send_example_mailing(state: FSMContext, message: types.Message):
+    message_text, photo_id, date = await get_mailing_data(state=state)
+    full_message_text = f"ПРИМЕР РАССЫЛКИ НА {date}: \n {message_text}"
+    if photo_id is not None:
+        full_message_text = full_message_text[:1023]
+        await message.answer_photo(photo=photo_id, caption=full_message_text, reply_markup=admin_kb.get_edit_keyboard())
+    else:
+        await message.answer(text=full_message_text, reply_markup=admin_kb.get_edit_keyboard())
 
 
 def get_photo_id(photo):

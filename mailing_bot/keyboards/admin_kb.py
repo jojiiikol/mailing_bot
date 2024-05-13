@@ -17,9 +17,10 @@ def get_edit_keyboard():
     kb = InlineKeyboardBuilder()
     kb.button(text="Изменить текст", callback_data="edit_text")
     kb.button(text="Изменить фото", callback_data="edit_photo")
+    kb.button(text="Изменить время и дату", callback_data="edit_datetime")
     kb.button(text="Подтвердить", callback_data="set_confirm")
     kb.button(text="Отменить", callback_data="set_cancel")
-    kb.adjust(2, 2)
+    kb.adjust(2, 3)
     return kb.as_markup()
 
 def get_archive_mailing_buttons():
