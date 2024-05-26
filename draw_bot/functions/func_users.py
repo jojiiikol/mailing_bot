@@ -22,6 +22,7 @@ async def check_subscription(callback: types.CallbackQuery):
         await callback.message.answer("К сожалению вы не подписаны, просим это сделать как можно быстрее!")
     else:
         await __main__.db.update_subscription_status_user(callback.from_user.id)
+        id_user = await __main__.db.get_id_from_tg_id(callback.from_user.id)
         await callback.message.answer(
-            "Отлично, ваше участие зачтено!")
+            f"Отлично, ваше участие зачтено!\nВаш номер для розыгрыша - {id_user}")
         await callback.message.delete()

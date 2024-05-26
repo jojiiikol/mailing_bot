@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import time
+
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -254,15 +256,23 @@ async def edit_datetime(message: types.Message, state: FSMContext):
 @admin_router.callback_query(CreateMailing.confirm_2, F.data.contains("set_"))
 async def do_mailing(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
-    data = await state.get_data()
-    await download_photo_to_server(data['photo_info'])
-    await insert_mailing_in_archive(callback.from_user.id, state)
-    await make_mailing_job_for_cheduler(state)
+    if callback.data.split("_")[1] == 'confirm':
+        data = await state.get_data()
+        await download_photo_to_server(data['photo_info'])
+        await insert_mailing_in_archive(callback.from_user.id, state)
+        await make_mailing_job_for_cheduler(state)
+        await callback.message.answer(text="Рассылка была добавлена")
+
+    else:
+        await callback.message.answer(text="Рассылка была отменена")
     await state.clear()
+
 
 
 async def make_mailing_job_for_cheduler(state: FSMContext):
     message_text, photo, date = await get_mailing_data(state)
+    if date < datetime.datetime.now():
+        date += datetime.timedelta(minutes=1)
     __main__.scheduler.add_job(mailing, 'date', run_date=date, args=(message_text, photo))
     print("Добавлена задача в планировщик")
     print(f"Всего задач: {len(__main__.scheduler.get_jobs())}\n")

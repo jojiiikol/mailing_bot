@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розыгрыш</title>
+    <link rel="stylesheet" href="{% static 'draw_app/styles.css' %}">
+</head>
+<body>
+    <div id="app">
+        <h1>В розыгрыше участвуют <span id="participant-count"></span>!</h1>
+        <div id="animation-container">
+            <span id="current-id"></span>
+        </div>
+        <button id="draw-winner">Определить победителя</button>
+        <p id="winner-announcement"></p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="{% static 'draw_app/script.js' %}"></script>
+</body>
+</html>
