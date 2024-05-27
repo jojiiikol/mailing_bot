@@ -60,4 +60,5 @@ class Mailing(APIView):
             'text': 'Поздравляю, ты победил, просим тебя подняться на сцену'
         }
         requests.post(req, data=data)
+
         return Response({'status': 'Ok'})

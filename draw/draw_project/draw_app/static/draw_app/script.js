@@ -46,13 +46,18 @@ function drawWinner(users) {
                     showConfetti();
                     fetch('http://localhost:8000/mailing/', {
                         method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'X-CSRFTOKEN': csrf_token,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify({
                             'tg_name': winner.tg_name
-                        }),
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
+                        })
+
                     });
+
                 }
             }
 

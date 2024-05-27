@@ -20,7 +20,7 @@ def get_edit_keyboard():
     kb.button(text="Изменить время и дату", callback_data="edit_datetime")
     kb.button(text="Подтвердить", callback_data="set_confirm")
     kb.button(text="Отменить", callback_data="set_cancel")
-    kb.adjust(2, 3)
+    kb.adjust(2, 1, 2)
     return kb.as_markup()
 
 def get_archive_mailing_buttons():

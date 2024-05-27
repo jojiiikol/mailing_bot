@@ -272,7 +272,7 @@ async def do_mailing(callback: types.CallbackQuery, state: FSMContext):
 async def make_mailing_job_for_cheduler(state: FSMContext):
     message_text, photo, date = await get_mailing_data(state)
     if date < datetime.datetime.now():
-        date += datetime.timedelta(minutes=1)
+        date = datetime.datetime.now()
     __main__.scheduler.add_job(mailing, 'date', run_date=date, args=(message_text, photo))
     print("Добавлена задача в планировщик")
     print(f"Всего задач: {len(__main__.scheduler.get_jobs())}\n")
