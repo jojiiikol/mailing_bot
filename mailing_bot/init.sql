@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2024-05-08 13:28:04
+-- Started on 2024-06-09 01:27:05
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -60,27 +60,29 @@ ALTER SEQUENCE public.admins_id_seq OWNED BY public.admins.id;
 
 
 --
--- TOC entry 220 (class 1259 OID 87427)
--- Name: mailing_archive; Type: TABLE; Schema: public; Owner: postgres
+-- TOC entry 220 (class 1259 OID 87444)
+-- Name: mailing; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.mailing_archive (
+CREATE TABLE public.mailing (
     id bigint NOT NULL,
-    user_id bigint,
-    mailing_text character varying(2048),
-    mailing_photo character varying(2048),
-    mailing_date date
+    admin_id bigint NOT NULL,
+    text character varying(2048),
+    photo character varying(512),
+    "time" time without time zone,
+    date date,
+    status boolean DEFAULT false NOT NULL
 );
 
 
-ALTER TABLE public.mailing_archive OWNER TO postgres;
+ALTER TABLE public.mailing OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1259 OID 87426)
--- Name: mailing_archive_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- TOC entry 219 (class 1259 OID 87443)
+-- Name: mailing_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.mailing_archive_id_seq
+CREATE SEQUENCE public.mailing_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -88,15 +90,15 @@ CREATE SEQUENCE public.mailing_archive_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.mailing_archive_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.mailing_id_seq OWNER TO postgres;
 
 --
 -- TOC entry 4811 (class 0 OID 0)
 -- Dependencies: 219
--- Name: mailing_archive_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: mailing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.mailing_archive_id_seq OWNED BY public.mailing_archive.id;
+ALTER SEQUENCE public.mailing_id_seq OWNED BY public.mailing.id;
 
 
 --
@@ -150,11 +152,11 @@ ALTER TABLE ONLY public.admins ALTER COLUMN id SET DEFAULT nextval('public.admin
 
 
 --
--- TOC entry 4648 (class 2604 OID 87430)
--- Name: mailing_archive id; Type: DEFAULT; Schema: public; Owner: postgres
+-- TOC entry 4648 (class 2604 OID 87447)
+-- Name: mailing id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.mailing_archive ALTER COLUMN id SET DEFAULT nextval('public.mailing_archive_id_seq'::regclass);
+ALTER TABLE ONLY public.mailing ALTER COLUMN id SET DEFAULT nextval('public.mailing_id_seq'::regclass);
 
 
 --
@@ -176,12 +178,12 @@ COPY public.admins (id, tg_id) FROM stdin;
 
 
 --
--- TOC entry 4804 (class 0 OID 87427)
+-- TOC entry 4804 (class 0 OID 87444)
 -- Dependencies: 220
--- Data for Name: mailing_archive; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: mailing; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.mailing_archive (id, user_id, mailing_text, mailing_photo, mailing_date) FROM stdin;
+COPY public.mailing (id, admin_id, text, photo, "time", date, status) FROM stdin;
 \.
 
 
@@ -201,16 +203,16 @@ COPY public.users (id, tg_id, nickname, date_joined, confirmed, is_block, channe
 -- Name: admins_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.admins_id_seq', 6, true);
+SELECT pg_catalog.setval('public.admins_id_seq', 7, true);
 
 
 --
 -- TOC entry 4814 (class 0 OID 0)
 -- Dependencies: 219
--- Name: mailing_archive_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: mailing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.mailing_archive_id_seq', 15, true);
+SELECT pg_catalog.setval('public.mailing_id_seq', 32, true);
 
 
 --
@@ -219,11 +221,11 @@ SELECT pg_catalog.setval('public.mailing_archive_id_seq', 15, true);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 9, true);
+SELECT pg_catalog.setval('public.users_id_seq', 10, true);
 
 
 --
--- TOC entry 4652 (class 2606 OID 87425)
+-- TOC entry 4653 (class 2606 OID 87425)
 -- Name: admins admins_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -232,16 +234,16 @@ ALTER TABLE ONLY public.admins
 
 
 --
--- TOC entry 4654 (class 2606 OID 87434)
--- Name: mailing_archive mailing_archive_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- TOC entry 4655 (class 2606 OID 87452)
+-- Name: mailing mailing_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.mailing_archive
-    ADD CONSTRAINT mailing_archive_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.mailing
+    ADD CONSTRAINT mailing_pkey PRIMARY KEY (id);
 
 
 --
--- TOC entry 4650 (class 2606 OID 87417)
+-- TOC entry 4651 (class 2606 OID 87417)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -249,16 +251,7 @@ ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
---
--- TOC entry 4655 (class 2606 OID 87435)
--- Name: mailing_archive user_id_pk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.mailing_archive
-    ADD CONSTRAINT user_id_pk FOREIGN KEY (user_id) REFERENCES public.users(id) NOT VALID;
-
-
--- Completed on 2024-05-08 13:28:04
+-- Completed on 2024-06-09 01:27:05
 
 --
 -- PostgreSQL database dump complete

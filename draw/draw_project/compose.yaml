@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    hostname: db
+    container_name: db
+    environment:
+      - POSTGRES_PASSWORD=205896
+      - POSTGRES_DB=draw
+    restart: on-failure
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+  web:
+    build:
+      context: ../draw_project
+    command: bash -c "sleep 10 && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    env_file:
+      - .env
+  bot:
+    build:
+      context: ../../draw_bot
+    command: bash -c "sleep 11 && python main.py "
+    env_file:
+      - ../../draw_bot/.env
+    depends_on:
+      - db
