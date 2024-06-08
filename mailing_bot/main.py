@@ -15,6 +15,7 @@ load_dotenv()
 db = Database()
 scheduler = Scheduler()
 token = os.getenv('BOT_TOKEN')
+dp = Dispatcher()
 
 bot = Bot(token=token,
           default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -22,7 +23,6 @@ print('Bot started')
 
 async def main():
     scheduler.start()
-    dp = Dispatcher()
     dp.include_router(func_users.user_router)
     dp.include_router(func_services.services_router)
     dp.include_router(func_admin.admin_router)

@@ -55,7 +55,13 @@ async def mailing_archive(message: types.Message):
         pass
     else:
         await message.answer(text="Выберите рассылку для просмотра",
-                             reply_markup=admin_kb.get_archive_mailing_buttons())
+                             reply_markup=admin_kb.get_archive_mailing_buttons(page=0))
+
+
+@admin_router.callback_query(admin_kb.Paginator.filter())
+async def paginator_logic(callback: types.CallbackQuery, callback_data: admin_kb.Paginator):
+    page = callback_data.page
+    await callback.message.edit_reply_markup(reply_markup=admin_kb.get_archive_mailing_buttons(page))
 
 
 @admin_router.callback_query(F.data.contains("archive_"))
@@ -78,6 +84,8 @@ async def get_archive(callback: types.CallbackQuery):
             await callback.message.answer_photo(photo=types.FSInputFile(path=photo))
     except Exception as e:
         print(f"Ошибка при отправке фото с сервера: {str(e)}")
+
+    await callback.message.delete()
 
 
 @admin_router.message(F.text == "Создать рассылку")
