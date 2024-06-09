@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2024-06-09 19:56:20
+-- Started on 2024-06-09 20:04:29
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -444,7 +444,6 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 --
 
 COPY public.admins (id, tg_id) FROM stdin;
-1	513173580
 \.
 
 
@@ -690,11 +689,6 @@ COPY public.django_session (session_key, session_data, expire_date) FROM stdin;
 --
 
 COPY public.draw_app_drawusers (id, tg_id, tg_name, joined_to_chanel, winner) FROM stdin;
-3	3647584	test3	f	f
-4	5345643875	test4	t	f
-1	78364552	test	t	f
-5	513173580	jojiiikol	t	t
-2	3564253	test2	t	t
 \.
 
 
@@ -705,7 +699,6 @@ COPY public.draw_app_drawusers (id, tg_id, tg_name, joined_to_chanel, winner) FR
 --
 
 COPY public.mailing (id, admin_id, text, photo, "time", date, status) FROM stdin;
-1	1	fff	photo/AQADUN8xG688MEt-.jpg	19:32:00	2024-06-09	f
 \.
 
 
@@ -716,7 +709,6 @@ COPY public.mailing (id, admin_id, text, photo, "time", date, status) FROM stdin
 --
 
 COPY public.users (id, tg_id, nickname, date_joined, confirmed, is_block, channel_date_joined) FROM stdin;
-1	513173580	jojiiikol	2024-06-09	t	f	2024-06-09
 \.
 
 
@@ -1211,7 +1203,7 @@ ALTER TABLE ONLY public.django_admin_log
     ADD CONSTRAINT django_admin_log_user_id_c564eba6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
--- Completed on 2024-06-09 19:56:20
+-- Completed on 2024-06-09 20:04:30
 
 --
 -- PostgreSQL database dump complete

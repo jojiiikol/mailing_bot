@@ -31,3 +31,18 @@ services:
       - ../../draw_bot/.env
     depends_on:
       - db
+    ports:
+      - 7771:7771
+  mailing-bot:
+    build:
+      context: ../../mailing_bot
+    working_dir:
+      /app
+    command: python main.py
+    env_file:
+      - ../../mailing_bot/.env
+    restart: always
+    ports:
+      - 7772:7772
+    depends_on:
+      - db

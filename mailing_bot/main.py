@@ -21,11 +21,18 @@ bot = Bot(token=token,
           default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 print('Bot started')
 
+async def test_ched():
+    print("hello")
+
+scheduler.add_job(test_ched, 'date', run_date=datetime.datetime.now() + datetime.timedelta(seconds=20))
+
 async def main():
     scheduler.start()
     dp.include_router(func_users.user_router)
     dp.include_router(func_services.services_router)
     dp.include_router(func_admin.admin_router)
+    print(scheduler.get_jobs())
+    print(datetime.datetime.now())
 
 
     await bot.delete_webhook(drop_pending_updates=True)
