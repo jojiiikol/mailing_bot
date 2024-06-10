@@ -136,6 +136,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8000',
-    'http://31.207.44.172:8000',
+    'http://web:8000',
 
 )
