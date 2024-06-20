@@ -11,7 +11,7 @@ class Database:
         self.connection = connect(
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            host="127.0.0.1",
+            host="db",
             port='5432',
             database='draw'
         )
