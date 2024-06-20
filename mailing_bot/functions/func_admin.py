@@ -66,26 +66,30 @@ async def paginator_logic(callback: types.CallbackQuery, callback_data: admin_kb
 
 @admin_router.callback_query(F.data.contains("archive_"))
 async def get_archive(callback: types.CallbackQuery):
-    await callback.answer()
-    archive_message = callback.data.split("_")
-    message = await __main__.db.get_archive_mailing_message(archive_message[1])
-    photo = message[2]
-    text = (f"Отправитель: {message[6]}\n"
-            f"Дата отправления: {str(message[3])}\n"
-            f"Время отправления: {str(message[4])}\n"
-            f"Рассылка: {'Проведена' if message[5] == False else "Не проведена"}"
-            f"\nТекст: {message[1]}")
-    await callback.message.answer(text=text)
-
     try:
-        if photo == 'None':
-            pass
-        else:
-            await callback.message.answer_photo(photo=types.FSInputFile(path=photo))
+
+        await callback.answer()
+        archive_message = callback.data.split("_")
+        message = await __main__.db.get_archive_mailing_message(archive_message[1])
+        photo = message[2]
+        text = (f"Отправитель: {message[6]}\n"
+                f"Дата отправления: {str(message[3])}\n"
+                f"Время отправления: {str(message[4])}\n"
+                f"Рассылка: {'Проведена' if message[5] == False else "Не проведена"}"
+                f"\nТекст: {message[1]}")
+        await callback.message.answer(text=text)
+
+        try:
+            if photo == 'None':
+                pass
+            else:
+                await callback.message.answer_photo(photo=types.FSInputFile(path=photo))
+        except Exception as e:
+            print(f"Ошибка при отправке фото с сервера: {str(e)}")
+
+        await callback.message.delete()
     except Exception as e:
         print(f"Ошибка при отправке фото с сервера: {str(e)}")
-
-    await callback.message.delete()
 
 
 @admin_router.message(F.text == "Создать рассылку")

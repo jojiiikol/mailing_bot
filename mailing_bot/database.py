@@ -11,7 +11,7 @@ class Database:
         self.connection = connect(
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            host="db",
+            host="127.0.0.1",
             port='5432',
             database='draw'
         )
@@ -67,6 +67,16 @@ class Database:
         except Exception as e:
             print(
                 f"update_subscription_status_user: Произошла ошибка в изменении статуса подписанного на канал пользователя: {str(e)}")
+
+    async def check_subscription_status_user(self, tg_id):
+        try:
+            query = f"SELECT confirmed FROM users WHERE tg_id = {tg_id}"
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            return result[0]
+        except Exception as e:
+            print(f"check_subscription_status_user: Произошла ошибка в проверке статуса подписанного на канал пользователя: {str(e)}")
+
 
     async def update_blocked__status_user(self, tg_id):
         try:
