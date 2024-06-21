@@ -15,7 +15,7 @@ async def start(message: types.Message):
     await message.answer(
         f"Привет 🙌🏻\nЯ буду твоим проводником по Недели Молодежи и фестивалю День Молодежи на Ягоме! Но для начала "
         f"подпишись на наш канал Молодежный центр ✔️\nПосле подписки мы начнём экскурсию по предстоящим мероприятиям 🚀"
-        f"\nhttps://t.me/djflkasdfhkjasldhfkjas",
+        f"\nhttps://t.me/molodnv",
         reply_markup=get_check_subscription_kb().as_markup())
 
 
@@ -26,7 +26,7 @@ async def menu_button(message: types.Message):
         await message.answer("К сожалению вы не подписаны, просим это сделать как можно быстрей!\nСделать это можно "
                              "с помощью команды /start")
     else:
-        status = await __main__.bot.get_chat_member(chat_id=-1002034078335, user_id=message.from_user.id)
+        status = await __main__.bot.get_chat_member(chat_id=-1001858677023, user_id=message.from_user.id)
         if status.status in ['left', 'kicked']:
             await message.answer("К сожалению вы не подписаны на канал, просим это сделать как можно быстрей!")
         else:
@@ -42,7 +42,7 @@ async def menu_button(message: types.Message):
 @user_router.callback_query(F.data == 'check_subscription')
 async def check_subscription(callback: types.CallbackQuery):
     await callback.answer()
-    status = await __main__.bot.get_chat_member(chat_id=-1002034078335, user_id=callback.from_user.id)
+    status = await __main__.bot.get_chat_member(chat_id=-1001858677023, user_id=callback.from_user.id)
     if status.status in ['left', 'kicked']:
         await callback.message.answer("К сожалению вы не подписаны, просим это сделать как можно быстрей!")
     else:
@@ -74,11 +74,15 @@ async def about_festival(callback: types.CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_photo(
         photo="AgACAgIAAxkBAAM9ZnU3AUlNI1uZc93LJFlqKemdrg4AApbZMRtR8KhLdcOKxa0jYIcBAAMCAAN5AAM1BA",
-        caption="МОЛОДЕЖЬ РЕШАЕТ, МОЛОДЕЖЬ ВЫБИРАЕТ!\n\nТЫ ГЛАВНЫЙ ГЕРОЙ СВОЕЙ ЖИЗНИ!\n\nНеделя молодежи - настоящий "
-                "городской праздник со множеством активностей, в каждой из них тебя ждет своя увлекательная программа. "
-                "Исследуй наполнение этих пространств, найди себя!\n\nНеделя молодежи объединит не только молодых людей, "
-                "но и все поколения, станет по-настоящему семейным праздником.\n\nОбщую программу мероприятия ты найдешь в "
-                "меню!",
+        caption="Отметьте День молодежи в уникальном лесном комплексе Ягом!\n\nЭто место, где можно не только интересно "
+                "провести время, но и насладиться красотой нетронутой природы.\n\nЯгом - это настоящий оазис в близи "
+                "города, где вы сможете:\n\n🌳 Прогуляться по живописным экологическим тропам и полюбоваться вековыми "
+                "деревьями\n🐦 Понаблюдать за птицами, белками  и другими обитателями леса в их естественной среде\n🧘 "
+                "Отдохнуть от городской суеты и зарядиться энергией природы\n\nА еще в программе события:\n💫 Звездные "
+                "блогеры\n🎨 Творческие, экологические мастер-классы и полезные лекции\n🎤 Выступления амбассадоров "
+                "арт-резиденции «Ядро»\n🏃 Спортивные игры и состязания на свежем воздухе\n🍽 Дегустация сибирской "
+                "кухни\n\nПриглашаем тебя молодежь и всю твою семью провести незабываемый день в уникальном лесном "
+                "комплексе Ягом!\nВход свободный.",
         reply_markup=get_back_button()
     )
 
@@ -86,13 +90,15 @@ async def about_festival(callback: types.CallbackQuery):
 async def about_festival(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
-    await callback.message.answer(
-        text="29 июня на главной сцене «Ягома» будет проходить розыгрыш подарков среди присутствующих, "
+    await callback.message.answer_photo(
+        photo="AgACAgIAAxkBAAIBA2Z1ZXwizmhqcBkUvG0U_jXedAFuAALE2jEbUfCoSwpMSP3ygDdFAQADAgADeQADNQQ",
+        caption="29 июня на главной сцене «Ягома» будет проходить розыгрыш подарков среди присутствующих, "
              "не пропусти!\n\nГлавный приз – годовой запас пиццы от «До-До» и год интернета от «Метросети»\n\nА так же "
              "подарочные сертификаты от наших партнеров:\n\n1.Салон красоты «IDOL FACE»\n2.Салон красоты «Milana "
              "beauty»\n3.Студия красоты «LUXURY STUDIO»\n4.Шоурум «Аутфит»\n5.Dо4а\n6.Сибур\n7.Барбершоп «YUSUF»\n8.СК "
              "«STORM»\n9.Картинг «Югра Дрифт»\n10.Салон красоты «Хорошая девочка»\n11.Photolab "
-             "фотостудия\n12.Боулинг-ресторан «Brooklyn Bowl»\n13.Центр проката КвадроМания Нижневартовск",
+             "фотостудия\n12.Боулинг-ресторан «Brooklyn Bowl»\n13.Центр проката КвадроМания Нижневартовск\n"
+             "14.«Yumey Wear»",
         reply_markup=get_back_button()
     )
 
@@ -112,7 +118,7 @@ async def logistic(callback: types.CallbackQuery):
 
 
 @user_router.callback_query(F.data == 'navigation')
-async def logistic(callback: types.CallbackQuery):
+async def navigation(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
     await callback.message.answer_photo(
@@ -122,14 +128,15 @@ async def logistic(callback: types.CallbackQuery):
     )
 
 
-# @user_router.callback_query(F.data == 'contact')
-# async def logistic(callback: types.CallbackQuery):
-#     await callback.answer()
-#     await callback.message.delete()
-#     await callback.message.answer(
-#         text="https://vk.com/molodnv",
-#         reply_markup=get_back_button()
-#     )
+@user_router.callback_query(F.data == 'contact')
+async def logistic(callback: types.CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    await callback.message.answer_photo(
+        photo="AgACAgIAAxkBAAIBAWZ1ZNxYh_WvbpLayubxZMa-n1KmAALC2jEbUfCoSwAB1Mk03E84WwEAAwIAA3kAAzUE",
+        caption="Контакты: https://vk.com/molodnv",
+        reply_markup=get_back_button()
+    )
 
 
 @user_router.callback_query(F.data == 'program')

@@ -14,7 +14,7 @@ def get_main_kb():
     kb.button(text="Программа недели молодежи", callback_data="program")
     kb.button(text="Программа дня молодежи", callback_data="molod_day")
     kb.button(text="Розыгрыш", callback_data="draw")
-    kb.button(text="Связаться с организатором", url="https://vk.com/molodnv")
+    kb.button(text="Связаться с организатором", callback_data="contact")
     kb.adjust(1)
     return kb.as_markup()
 

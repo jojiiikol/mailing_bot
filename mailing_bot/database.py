@@ -163,3 +163,25 @@ class Database:
         except Exception as e:
             print(f"change_status_mailing: Произошла ошибка при смене статуса рассылки: {str(e)}")
 
+    async def get_count_subscriptions_date(self):
+        try:
+            query = (f"select date_joined, count(tg_id) from users where confirmed = true and date_joined is not NULL "
+                     f"group by date_joined")
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+            return result
+        except Exception as e:
+            print(f"При запросе на количество подписчиков произошла ошибка: {str(e)}")
+
+    async def get_count_subscriptions(self):
+        try:
+            query = (f"select Count(tg_id) From users Where date_joined is not NULL and confirmed = true")
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            return result[0]
+        except Exception as e:
+            print(f"При запросе на количество всех подписчиков произошла ошибка: {str(e)}")
+
+
+
+

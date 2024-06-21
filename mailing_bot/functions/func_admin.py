@@ -56,6 +56,20 @@ async def mailing_archive(message: types.Message):
     else:
         await message.answer(text="Выберите рассылку для просмотра",
                              reply_markup=admin_kb.get_archive_mailing_buttons(page=0))
+@admin_router.message(F.text == "Количество подписавшихся")
+async def get_count_subscription(message: types.Message):
+    check_admin = await __main__.db.get_admin_id_from_tg_id(message.from_user.id)
+    if check_admin is None:
+        pass
+    else:
+        people_with_date = await __main__.db.get_count_subscriptions_date()
+        people = await __main__.db.get_count_subscriptions()
+        text = "КОЛИЧЕСТВО ПОДПИСЧИКОВ\n"
+        for count in people_with_date:
+            text += f"{count[0]} - {count[1]} чел.\n"
+        text += f"\nОбщее количество человек: {people}"
+        await message.answer(text=text)
+
 
 
 @admin_router.callback_query(admin_kb.Paginator.filter())

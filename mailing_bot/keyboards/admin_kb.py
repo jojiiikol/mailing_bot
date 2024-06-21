@@ -12,6 +12,8 @@ def get_admin_keyboard():
     kb = ReplyKeyboardBuilder()
     kb.button(text="Архив рассылок")
     kb.button(text="Создать рассылку")
+    kb.button(text="Количество подписавшихся")
+    kb.adjust(2, 1)
     return kb.as_markup(resize_keyboard=True)
 
 
