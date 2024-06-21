@@ -35,7 +35,7 @@ def get_program_kb():
     kb.button(text="25 июня", callback_data="june_25")
     kb.button(text="26 июня", callback_data="june_26")
     kb.button(text="27 июня", callback_data="june_27")
-    kb.button(text="28 июня", callback_data="june_28")
+    kb.button(text="28 и 29 июня", callback_data="june_28")
     # kb.button(text="29 июня", callback_data="june_29")
     kb.button(text="На главное меню", callback_data="back_to_main_0")
     kb.adjust(1)

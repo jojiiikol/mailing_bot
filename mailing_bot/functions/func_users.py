@@ -13,8 +13,9 @@ user_router = Router()
 async def start(message: types.Message):
     await __main__.db.insert_user(message.from_user.id, message.from_user.username)
     await message.answer(
-        f"Привет, {message.from_user.username}, я бот, который будет ифнормировать тебя о фестивале молодежи!\n"
-        f"Прошу подписаться тебя на канал https://t.me/djflkasdfhkjasldhfkjas. после того, как ты подпишешься, мы начнем работу!",
+        f"Привет 🙌🏻\nЯ буду твоим проводником по Недели Молодежи и фестивалю День Молодежи на Ягоме! Но для начала "
+        f"подпишись на наш канал Молодежный центр ✔️\nПосле подписки мы начнём экскурсию по предстоящим мероприятиям 🚀"
+        f"\nhttps://t.me/djflkasdfhkjasldhfkjas",
         reply_markup=get_check_subscription_kb().as_markup())
 
 
@@ -25,7 +26,7 @@ async def menu_button(message: types.Message):
         await message.answer("К сожалению вы не подписаны, просим это сделать как можно быстрей!\nСделать это можно "
                              "с помощью команды /start")
     else:
-        status = await __main__.bot.get_chat_member(chat_id=-1002092565895, user_id=message.from_user.id)
+        status = await __main__.bot.get_chat_member(chat_id=-1002034078335, user_id=message.from_user.id)
         if status.status in ['left', 'kicked']:
             await message.answer("К сожалению вы не подписаны на канал, просим это сделать как можно быстрей!")
         else:
@@ -41,7 +42,7 @@ async def menu_button(message: types.Message):
 @user_router.callback_query(F.data == 'check_subscription')
 async def check_subscription(callback: types.CallbackQuery):
     await callback.answer()
-    status = await __main__.bot.get_chat_member(chat_id=-1002092565895, user_id=callback.from_user.id)
+    status = await __main__.bot.get_chat_member(chat_id=-1002034078335, user_id=callback.from_user.id)
     if status.status in ['left', 'kicked']:
         await callback.message.answer("К сожалению вы не подписаны, просим это сделать как можно быстрей!")
     else:
@@ -72,7 +73,7 @@ async def about_festival(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
     await callback.message.answer_photo(
-        photo="AgACAgIAAxkBAAINQ2Z0WstKqEzS-6eu2qGTn4hFGFDqAAIj4jEbUD2gS38SqeHsrNZAAQADAgADeQADNQQ",
+        photo="AgACAgIAAxkBAAM9ZnU3AUlNI1uZc93LJFlqKemdrg4AApbZMRtR8KhLdcOKxa0jYIcBAAMCAAN5AAM1BA",
         caption="МОЛОДЕЖЬ РЕШАЕТ, МОЛОДЕЖЬ ВЫБИРАЕТ!\n\nТЫ ГЛАВНЫЙ ГЕРОЙ СВОЕЙ ЖИЗНИ!\n\nНеделя молодежи - настоящий "
                 "городской праздник со множеством активностей, в каждой из них тебя ждет своя увлекательная программа. "
                 "Исследуй наполнение этих пространств, найди себя!\n\nНеделя молодежи объединит не только молодых людей, "
@@ -101,7 +102,7 @@ async def logistic(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
     await callback.message.answer_photo(
-        photo="AgACAgIAAxkBAAINSWZ0Wx1EqgRwR8i0qsr4aKcYLQb1AAIr4jEbUD2gS_7ssCrjX7GzAQADAgADeQADNQQ",
+        photo="AgACAgIAAxkBAAM_ZnU3JZfmdcxrTR2UKnr79iAR-CUAApfZMRtR8KhLgPXsCd9sVV0BAAMCAAN5AAM1BA",
         caption="Лесной комплекс ЯГОМ расположен в районе Нижневартовского ГПЗ, на расстоянии 10 километров от "
                 "памятника покорителям «Самотлора» и граничит с поймой реки Мысовая Мега. ЯГОМ внесен во многие "
                 "навигаторы. До него легко добраться и найти.\n\nБолее подробная информация далее по ссылке\n\n"
@@ -145,7 +146,7 @@ async def molod_day(callback: types.CallbackQuery):
     await callback.answer()
     await callback.message.delete()
     photo_msg = await callback.message.answer_photo(
-        photo="AgACAgIAAxkBAAINh2Z0XzTxIi4UAuI6P2f_pJqCnHHZAAI94jEbUD2gS1PuSCcxid6EAQADAgADeQADNQQ"
+        photo="AgACAgIAAxkBAAIPVWZ1M_t-MVfxXaDyqe2boh7dpMKOAAJT2jEbZsOoS_XCeQogtAABGgEAAwIAA3kAAzUE"
     )
     await callback.message.answer(
         text="<b>Гастрономия</b>\n10:00-20:00 – Ресторан «Дана»\n11:00-20:00\n– Семейный ресторан «У Камелька»\n– Ресторан Изба "
@@ -182,7 +183,7 @@ async def date_program(callback: types.CallbackQuery):
     data = callback.data.split("_")[1]
     if data == "24":
         await callback.message.answer_photo(
-            photo="AgACAgIAAxkBAAINS2Z0W9n5aUqsUrnGWFXbKjLtxz31AAIv4jEbUD2gS7YU6pehRfvnAQADAgADeQADNQQ",
+            photo="AgACAgIAAxkBAAIPR2Z1MuSbgkk4IihIGRvQ4HzY3inNAAJA2jEbZsOoS76jl6Natsp5AQADAgADeQADNQQ",
             caption="В понедельник ждёт насыщенный день! С утра — зарядка и баскетбол для бодрости тела и духа. А "
                     "вечером погружение в мир искусства.",
             reply_markup=get_back_from_event_button()
@@ -192,26 +193,30 @@ async def date_program(callback: types.CallbackQuery):
             caption="Вторник, 25 июня - день насыщенных мероприятий для всех!\n\nВеселые командные игры для всей семьи, "
                     "лаборатория настольных игр с опытными ведущими, «Мафия» для любителей интриг и молодежный "
                     "кинопоказ в арт-резиденции «Ядро».\n\nИ, конечно же,  выставка креативного туризма об уникальных "
-                    "возможностях путешествий по Югре!\n\nПриходите, будет интересно!",
-            photo="AgACAgIAAxkBAAINTWZ0XEwm7QABytF-HUEjjbtPptsRhQACMuIxG1A9oEvqW6xxO9g9MAEAAwIAA3kAAzUE",
+                    "возможностях путешествий по Югре!\n\nПриходите, будет интересно!\n\n\n"
+                    "На игру 'Мафия' вы сможете зарегистрироваться под постом* в группе:\nhttps://vk.com/siberianmafiaclub\n*пост с регистрацией выходит за сутки до мероприятия",
+            photo="AgACAgIAAxkBAAIPSWZ1MxN_bn9nEmmaUAZDIf9HsmrJAAJB2jEbZsOoSyJgbYjSY8WoAQADAgADeQADNQQ",
             reply_markup=get_back_from_event_button()
         )
     if data == "26":
         await callback.message.answer_photo(
-            photo="AgACAgIAAxkBAAINT2Z0XJWQ6JrzyB7PM6brx8Cyb-t_AAI04jEbUD2gS8unBf4HqgafAQADAgADeQADNQQ",
+            photo="AgACAgIAAxkBAAIPS2Z1M0Ldh1bxxSogyLQ8FYNUK-5rAAJC2jEbZsOoSy8UER1vndYsAQADAgADeQADNQQ",
             caption="Сегодня начни день с игр на открытом воздухе, а после окунись в атмосферу творчества и свободны.",
             reply_markup=get_back_from_event_button()
         )
     if data == "27":
         await callback.message.answer_photo(
-            photo="AgACAgIAAxkBAAINUWZ0XNmyoKWxcPdEkPYRzQnFNvKtAAI14jEbUD2gSwYtiUg_2TbpAQADAgADeQADNQQ",
+            photo="AgACAgIAAxkBAAIPTWZ1M2XuJApJAdmqF1f2eVpSfoGIAAJG2jEbZsOoS2dLlhvivIa8AQADAgADeQADNQQ",
             caption="Четверг это маленькая пятница\n\nПоэтому нужно повеселиться на фитджитал танцах, занять ум "
-                    "шахматами и узнать кто же все таки «Мафия»",
+                    "шахматами и узнать кто же все таки «Мафия»\n\nОбратите внимание, что на мероприятия необходима регистрация!\n\n"
+                    "Турнир по шахматам и фиджитал танцы:\nhttps://forms.gle/imypwf7hsmJ9Q6iv9\n\n"
+                    "Посещение компьютерного клуба 'Cheek point':\nhttps://forms.gle/N8PetohDBntZQvrP6\n\n"
+                    "На игру 'Мафия' вы сможете зарегистрироваться под постом* в группе:\nhttps://vk.com/siberianmafiaclub\n*пост с регистрацией выходит за сутки до мероприятия",
             reply_markup=get_back_from_event_button()
         )
     if data == "28":
         await callback.message.answer_photo(
-            photo="AgACAgIAAxkBAAINU2Z0XTnPZr9fsaoaZoqnQzdZVl4uAAI44jEbUD2gS4ZSAygdrH2fAQADAgADeQADNQQ",
+            photo="AgACAgIAAxkBAAIPT2Z1M5njwSkecfY7CEAWZJbYHcIFAAJI2jEbZsOoS5Bv-Z1bTBTrAQADAgADeQADNQQ",
             caption="28 июня - праздник для всей семьи! Вас ждет насыщенный день с развлечениями для всех возрастов:\n\n"
                     "Семейные выходные с конкурсами и мастер-классами,\n\nВстреча любителей настольных игр с турнирами,\n\n"
                     "Зумба-вечеринка с зажигательными танцами,\n\nДень открытых дверей в скейт-парке с обучением, "
