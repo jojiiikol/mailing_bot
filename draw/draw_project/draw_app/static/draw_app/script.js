@@ -42,7 +42,12 @@ function drawWinner(users) {
                     setTimeout(animate, delay);
                 } else {
                     animationContainer.textContent = `Номер: ${winner.id}`;
-                    winnerAnnouncement.textContent = `Участник с номером ${winner.id} - ${winner.tg_name} является победителем!`;
+                    if (winner.sex == 'F') {
+                        winnerAnnouncement.textContent = `Участник с номером ${winner.id} - ${winner.tg_name} ♀ является победителем!`;
+                    }
+                    if (winner.sex == 'M') {
+                        winnerAnnouncement.textContent = `Участник с номером ${winner.id} - ${winner.tg_name} ♂ является победителем!`;
+                    }
                     showConfetti();
                     fetch('http://localhost:8000/mailing/', {
                         method: 'POST',

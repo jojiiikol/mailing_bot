@@ -57,7 +57,7 @@ class Mailing(APIView):
         req = f"https://api.telegram.org/bot{os.getenv('BOT_TOKEN')}/sendMessage"
         data = {
             'chat_id': user_winner.tg_id,
-            'text': 'Поздравляю, ты победил, просим тебя подняться на сцену'
+            'text': 'Поздравляем, ты выиграл в розыгрыше, просим тебя подняться на сцену!'
         }
         requests.post(req, data=data)
 

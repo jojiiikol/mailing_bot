@@ -23,7 +23,10 @@ class Database:
             query = f"SELECT id FROM draw_app_drawusers WHERE tg_id = {tg_id}"
             self.cursor.execute(query)
             user_id = self.cursor.fetchone()
-            return user_id[0]
+            if user_id is None:
+                return None
+            else:
+                return user_id[0]
         except Exception as e:
             print(f"get_id_from_tg_id: При извлечении id произошла ошибка: {str(e)}")
 
@@ -45,3 +48,12 @@ class Database:
         except Exception as e:
             print(
                 f"update_subscription_status_user: Произошла ошибка в изменении статуса подписанного на канал пользователя: {str(e)}")
+
+    async def update_sex_user(self, tg_id, sex=None):
+        try:
+            query = f"UPDATE draw_app_drawusers SET sex = '{sex}' WHERE tg_id ={tg_id}"
+            self.cursor.execute(query)
+            self.connection.commit()
+        except Exception as e:
+            print(
+                f"update_sex_user: Произошла ошибка в изменении статуса подписанного на канал пользователя: {str(e)}")

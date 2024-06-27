@@ -4,4 +4,4 @@ from .models import *
 class UsersSerializer(ModelSerializer):
     class Meta:
         model = DrawUsers
-        fields = ('id', 'tg_name', 'winner')
+        fields = ('id', 'tg_name', 'winner', 'sex')
